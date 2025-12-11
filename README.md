@@ -32,7 +32,7 @@
 
 ## 实验环境
 
-**操作系统：**
+**操作系统与编译环境：**
 ```bash
 Linux ORSTED-LAPTOP 5.15.167.4-microsoft-standard-WSL2
 #1 SMP Tue Nov 5 00:21:55 UTC 2024 x86_64 GNU/Linux
@@ -98,7 +98,8 @@ cd IOT
 ```bash
 chmod +x r.sh
 ./r.sh
-
+```
+```bash
 sudo sysctl -w kernel.randomize_va_space=0
 ```
 

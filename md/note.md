@@ -33,11 +33,8 @@ gcc -z execstack -no-pie -fno-stack-protector -g -o ${filename} ${filename}.c
 
 ### 3. 查看反汇编
 
-```gdb
+```bash
 (gdb) disassemble getbuf
-```
-
-```assembly
 Dump of assembler code for function getbuf:
    0x0000000000401272 <+0>:     push   %rbp
    0x0000000000401273 <+1>:     mov    %rsp,%rbp
@@ -128,7 +125,8 @@ fizz函数有一个参数，我们需要伪造一个参数。
 
 ### 3. 查看fizz函数的栈帧
 
-```assembly
+```bash
+(gdb) disas fizz
 Dump of assembler code for function fizz:
    0x00000000004011f0 <+0>:     push   %rbp
    0x00000000004011f1 <+1>:     mov    %rsp,%rbp
@@ -276,9 +274,6 @@ Please type a string (< 32 chars):Bang!: You set global_value to 0x2d
 
 ```bash
 (gdb) disassemble getbuf
-```
-
-```asembly
 Dump of assembler code for function getbuf:
    0x0000000000401272 <+0>:     push   %rbp
    0x0000000000401273 <+1>:     mov    %rsp,%rbp
@@ -333,9 +328,6 @@ rdi            0x7fffffffd940      140737488345408
 
 ```bash
 (gdb) disassemble bang
-```
-
-```assembly
 Dump of assembler code for function bang:
    0x000000000040119e <+0>:     push   %rbp
    0x000000000040119f <+1>:     mov    %rsp,%rbp
@@ -459,11 +451,8 @@ Please type a string (< 32 chars):Bang!: You set global_value to 0x2d
 └─$ gdb ./main
 ```
 
-```gdb
+```bash
 (gdb) disassemble test
-```
-
-```assembly
 Dump of assembler code for function test:
    0x00000000004012a6 <+0>:     push   %rbp
    0x00000000004012a7 <+1>:     mov    %rsp,%rbp
@@ -555,11 +544,8 @@ je     0x4012ec <test+70>
 └─$ gdb ./main
 ```
 
-```gdb
+```bash
 (gdb) disassemble getbuf
-```
-
-```assembly
 Dump of assembler code for function getbuf:
    0x0000000000401272 <+0>:     push   %rbp
 => 0x0000000000401273 <+1>:     mov    %rsp,%rbp
@@ -578,7 +564,7 @@ Dump of assembler code for function getbuf:
 End of assembler dump.
 ```
 
-```gdb
+```bash
 (gdb) break *0x401273
 Breakpoint 1 at 0x401273: file main.c, line 55.
 (gdb) run test

@@ -644,7 +644,7 @@ with open(r'./payload/boom.bin', 'wb') as f:
 print("Payload written to boom.bin")
 ```
 
-### 6. 运行。底下的Segmentation fault不用多管，这是脚本的段错误，不是payload的错误
+### 6. 运行
 ```bash
 ┌──(kali㉿ORSTED-LAPTOP)-[/mnt/d/Code/C/VSCode/IOT]
 └─$ ./r.sh ./main test < ./payload/boom.bin

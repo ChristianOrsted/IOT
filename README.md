@@ -98,6 +98,8 @@ cd IOT
 ```bash
 chmod +x r.sh
 ./r.sh
+
+sudo sysctl -w kernel.randomize_va_space=0
 ```
 
 ### 3. 编译漏洞程序

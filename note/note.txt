@@ -476,4 +476,50 @@ print("Payload written to boom.bin")
 └─$ ./r.sh ./main test < ./payload/boom.bin 
 --- calling test()---
 Please type a string (< 32 chars):Boom!:  success
-./r.sh: line 198:  3456 Segmentation fault      env -i "${envlist[@]}" "`pwd`/.launcher" "${@:2}"
+
+五、 KABOOM
+
+1. 老规矩，查看getbufn函数的反汇编
+(gdb) disas getbufn
+Dump of assembler code for function getbufn:
+   0x0000000000401324 <+0>:     push   %rbp
+   0x0000000000401325 <+1>:     mov    %rsp,%rbp
+   0x0000000000401328 <+4>:     sub    $0x200,%rsp
+   0x000000000040132f <+11>:    mov    $0x200,%esi
+   0x0000000000401334 <+16>:    lea    0xd7d(%rip),%rax        # 0x4020b8
+   0x000000000040133b <+23>:    mov    %rax,%rdi
+   0x000000000040133e <+26>:    mov    $0x0,%eax
+   0x0000000000401343 <+31>:    call   0x401040 <printf@plt>
+   0x0000000000401348 <+36>:    lea    -0x200(%rbp),%rax
+   0x000000000040134f <+43>:    mov    %rax,%rdi
+   0x0000000000401352 <+46>:    call   0x401156 <gets>
+   0x0000000000401357 <+51>:    mov    $0x1,%eax
+   0x000000000040135c <+56>:    leave
+   0x000000000040135d <+57>:    ret
+End of assembler dump.
+
+代码分析：
+与getbuf类似，这里不同的是开辟了0x200个字节的空间（sub $0x200,%rsp）。
+没什么新鲜的。
+
+2. 查看testn的反汇编代码
+Dump of assembler code for function testn:
+   0x000000000040135e <+0>:     push   %rbp
+   0x000000000040135f <+1>:     mov    %rsp,%rbp
+   0x0000000000401362 <+4>:     sub    $0x10,%rsp
+   0x0000000000401366 <+8>:     mov    $0x0,%eax
+   0x000000000040136b <+13>:    call   0x401257 <uniqueval>
+   0x0000000000401370 <+18>:    mov    %eax,-0x8(%rbp)
+   0x0000000000401373 <+21>:    mov    $0x0,%eax
+   0x0000000000401378 <+26>:    call   0x401324 <getbufn>
+   0x000000000040137d <+31>:    mov    %eax,-0x4(%rbp)
+   0x0000000000401380 <+34>:    mov    $0x0,%eax
+   0x0000000000401385 <+39>:    call   0x401257 <uniqueval>
+   0x000000000040138a <+44>:    mov    %eax,%edx
+   0x000000000040138c <+46>:    mov    -0x8(%rbp),%eax
+
+代码分析：
+这个代码结构也是老面孔了。但是处于谨慎考虑我们还是需要看一下栈帧中的局部变量是如何分布的。
+mov    %eax,-0x8(%rbp)        local局部变量放置在[RBP - 8]的位置上
+mov    %eax,-0x4(%rbp)        val局部变量放置在[RBP - 4]的位置上
+也就是这两个局部变量是连续分布的，又由于INT只有4个字节，是32位的，我们可以用一个64位寄存器覆盖RBP - 8就行了。

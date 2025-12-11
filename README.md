@@ -143,10 +143,14 @@ python3 python/smoke.py > payload/smoke.bin
 使用 GDB 进行详细分析：
 
 ```bash
-gdb ./main
+./r.sh gdb ./main
 (gdb) run test < payload/bang.bin
 (gdb) info registers
-(gdb) x/20x $rsp
+```
+
+```bash
+(gdb) layout asm # 打开反汇编窗口
+(gdb) layout reg # 打开寄存器窗口
 ```
 
 ## 核心组件

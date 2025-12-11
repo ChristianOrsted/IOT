@@ -36,6 +36,9 @@
 ```bash
 Linux ORSTED-LAPTOP 5.15.167.4-microsoft-standard-WSL2
 #1 SMP Tue Nov 5 00:21:55 UTC 2024 x86_64 GNU/Linux
+
+gcc (Debian 14.2.0-19) 14.2.0
+Copyright (C) 2024 Free Software Foundation, Inc.
 ```
 
 **平台：** WSL2（Windows Subsystem for Linux）  
@@ -132,7 +135,7 @@ python3 python/smoke.py > payload/smoke.bin
 
 ```bash
 # 示例：使用 bang payload 执行
-./main < payload/bang.bin
+./r.sh ./main test < payload/bang.bin
 ```
 
 ### 调试分析
@@ -141,7 +144,7 @@ python3 python/smoke.py > payload/smoke.bin
 
 ```bash
 gdb ./main
-(gdb) run < payload/bang.bin
+(gdb) run test < payload/bang.bin
 (gdb) info registers
 (gdb) x/20x $rsp
 ```

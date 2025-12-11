@@ -1,0 +1,64 @@
+(gdb) info registers eax edx
+eax            0xffffd970          -9872
+edx            0x11223344          287454020
+(gdb) info registers rax rdx
+rax            0xffffd970          4294957424
+rdx            0x11223344          287454020
+(gdb) info registers rax rdx rbp
+rax            0xffffd970          4294957424
+rdx            0x11223344          287454020
+rbp            0x7fffffffd930      0x7fffffffd930
+(gdb) x /16xb 7fffffffd920
+Invalid number "7fffffffd920".
+(gdb) x /16xb 0x7fffffffd920
+0x7fffffffd920: 0xb8    0xda    0xff    0xff    0xff    0xff    0xff    0xff
+0x7fffffffd928: 0x70    0xd9    0xff    0xff    0x2d    0x00    0x00    0x00
+
+
+
+
+(gdb) disas test
+Dump of assembler code for function test:
+   0x00000000004012a6 <+0>:     push   %rbp
+   0x00000000004012a7 <+1>:     mov    %rsp,%rbp
+   0x00000000004012aa <+4>:     sub    $0x10,%rsp
+   0x00000000004012ae <+8>:     mov    $0x0,%eax
+   0x00000000004012b3 <+13>:    call   0x401257 <uniqueval>
+   0x00000000004012b8 <+18>:    mov    %eax,-0x8(%rbp)
+   0x00000000004012bb <+21>:    mov    $0x0,%eax
+   0x00000000004012c0 <+26>:    call   0x401272 <getbuf>
+   0x00000000004012c5 <+31>:    mov    %eax,-0x4(%rbp)
+   0x00000000004012c8 <+34>:    mov    $0x0,%eax
+   0x00000000004012cd <+39>:    call   0x401257 <uniqueval>
+=> 0x00000000004012d2 <+44>:    mov    %eax,%edx
+   0x00000000004012d4 <+46>:    mov    -0x8(%rbp),%eax
+   0x00000000004012d7 <+49>:    cmp    %eax,%edx
+   0x00000000004012d9 <+51>:    je     0x4012ec <test+70>
+   0x00000000004012db <+53>:    lea    0xdfe(%rip),%rax        # 0x4020e0
+   0x00000000004012e2 <+60>:    mov    %rax,%rdi
+   0x00000000004012e5 <+63>:    call   0x401030 <puts@plt>
+   0x00000000004012ea <+68>:    jmp    0x401321 <test+123>
+   0x00000000004012ec <+70>:    mov    0x2d3e(%rip),%eax        # 0x404030 <cookie>
+   0x00000000004012f2 <+76>:    cmp    %eax,-0x4(%rbp)
+--Type <RET> for more, q to quit, c to continue without paging--q
+Quit
+(gdb) info registers eax edx ebp
+eax            0x11223344          287454020
+edx            0xfbad2098          -72540008
+ebp            0xffffd930          -9936
+(gdb) stepi
+0x00000000004012d4      72          if (local != uniqueval())
+(gdb) info registers eax edx ebp
+eax            0x11223344          287454020
+edx            0x11223344          287454020
+ebp            0xffffd930          -9936
+(gdb) x /16xb 0x7fffffffd920
+0x7fffffffd920: 0xb8    0xda    0xff    0xff    0xff    0xff    0xff    0xff
+0x7fffffffd928: 0x70    0xd9    0xff    0xff    0x2d    0x00    0x00    0x00
+(gdb) info registers eax edx ebp
+eax            0xffffd970          -9872
+edx            0x11223344          287454020
+ebp            0xffffd930          -9936
+(gdb) x /16xb 0x7fffffffd920
+0x7fffffffd920: 0xb8    0xda    0xff    0xff    0xff    0xff    0xff    0xff
+0x7fffffffd928: 0x70    0xd9    0xff    0xff    0x2d    0x00    0x00    0x00

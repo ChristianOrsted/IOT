@@ -5,7 +5,7 @@
 [![Platform](https://img.shields.io/badge/platform-Linux-lightgrey.svg)]()
 [![Language](https://img.shields.io/badge/language-C%20%7C%20Assembly%20%7C%20Python-orange.svg)]()
 
-> 一个用于物联网安全研究和教育的综合性缓冲区溢出攻击演示项目
+> 一个用于物联网安全的综合性缓冲区溢出攻击演示项目
 
 ## 目录
 
@@ -147,7 +147,7 @@ python3 python/smoke.py > payload/smoke.bin
 
 ```bash
 ./r.sh gdb ./main
-(gdb) run test < payload/bang.bin
+(gdb) run test < ./payload/bang.bin
 (gdb) info registers
 ```
 
@@ -177,7 +177,5 @@ python3 python/smoke.py > payload/smoke.bin
 
 ## 联系方式
 
-**Yunchen XU**  
+**Christian Orsted**  
 邮箱：446937472@qq.com
-
-如有问题、建议或合作意向，欢迎联系。
